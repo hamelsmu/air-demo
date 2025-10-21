@@ -24,13 +24,13 @@ def page_layout(*children, tasks_list):
     )
 
 
-def task_item(task_id: int, status: str):
+def task_item(task_id: int):
     """Render a task item"""
-    if status == "running":
+    if tasks[task_id]["status"] == "running":
         icon = air.Span("⏳", style="font-size: 20px; animation: spin 2s linear infinite;")
         text = f" Task #{task_id} - Processing..."
         color = "blue"
-        poll_attrs = {"hx_get": f"/task-status/{task_id}", "hx_trigger": "every 3s", "hx_swap": "outerHTML"}
+        poll_attrs = {"hx_get": f"/task-status/{task_id}", "hx_trigger": "every 2s", "hx_swap": "outerHTML"}
     else:
         icon = air.Span("✅", style="font-size: 20px;")
         text = f" Task #{task_id} - Completed"
@@ -52,7 +52,7 @@ def index():
                        style="padding: 10px 20px; font-size: 16px; cursor: pointer;")
 
     all_tasks = sorted(tasks.values(), key=lambda t: t['task_id'])
-    tasks_list = [task_item(t['task_id'], t['status']) for t in all_tasks]
+    tasks_list = [task_item(t['task_id']) for t in all_tasks]
     return page_layout(button, tasks_list=tasks_list)
 
 
@@ -69,14 +69,12 @@ async def start_task():
     task_counter += 1
     task_id = task_counter
     tasks[task_id] = {"task_id": task_id, "status": "running"}
-    asyncio.create_task(complete_task_later(task_id, duration=random.randint(2, 6)))    
-    return task_item(task_id, "running")
+    asyncio.create_task(complete_task_later(task_id, duration=random.randint(1, 5)))    
+    return task_item(task_id)
 
 
 @app.get("/task-status/{task_id}")
 async def task_status(task_id: int):
     """Poll endpoint for task status"""
-    if task_id not in tasks:
-        return ""
-    return task_item(task_id, tasks[task_id]["status"])
+    return "" if task_id not in tasks else task_item(task_id)
 
