@@ -3,22 +3,12 @@ Minimal Air Framework Demo with Background Tasks and Server-Sent Events (SSE)
 """
 import asyncio
 import random
-import uuid
-from datetime import datetime
 from typing import Dict
-
 import air
-from starlette.middleware.sessions import SessionMiddleware
 
 app = air.Air()
-
-# Add session middleware for persistence across refreshes
-app.add_middleware(SessionMiddleware, secret_key="your-secret-key-change-in-production")
-
-# In-memory task storage
-tasks: Dict[int, dict] = {}  # task_id -> task
+tasks: Dict[int, dict] = {} 
 task_counter = 0
-
 
 def page_layout(*children, tasks_list):
     """Reusable page layout with HTMX scripts and common headers"""
@@ -56,59 +46,30 @@ def task_item(task_id: int, status: str):
 
 
 @app.page
-def index(request: air.Request):
+def index():
     """Home page with button to start background task"""
-    # Get or create session ID
-    if "session_id" not in request.session:
-        request.session["session_id"] = str(uuid.uuid4())
-
-    session_id = request.session["session_id"]
-    
     button = air.Button("Start Task", hx_post="/start-task", hx_target="#tasks-list", hx_swap="beforeend",
                        style="padding: 10px 20px; font-size: 16px; cursor: pointer;")
 
-    # Get all tasks sorted by task_id
     all_tasks = sorted(tasks.values(), key=lambda t: t['task_id'])
     tasks_list = [task_item(t['task_id'], t['status']) for t in all_tasks]
-    
     return page_layout(button, tasks_list=tasks_list)
 
 
-async def complete_task_later(task_id: int):
+async def complete_task_later(task_id: int, duration: int):
     """Background task that completes after duration"""
-    task = tasks[task_id]
-    duration = task["duration"]
-    start_time = task["start_time"]
-    elapsed = (datetime.now() - start_time).total_seconds()
-    remaining = max(0, duration - elapsed)
-    
-    await asyncio.sleep(remaining)
-    task["status"] = "completed"
+    await asyncio.sleep(duration)
+    tasks[task_id]["status"] = "completed"
 
 
 @app.post("/start-task")
-async def start_task(request: air.Request):
+async def start_task():
     """Endpoint to start a background task"""
     global task_counter
-    session_id = request.session.get("session_id")
-    if not session_id:
-        return ""
-
-    # Create task
     task_counter += 1
     task_id = task_counter
-    duration = random.randint(2, 6)
-    tasks[task_id] = {
-        "task_id": task_id,
-        "session_id": session_id,
-        "status": "running",
-        "duration": duration,
-        "start_time": datetime.now(),
-    }
-
-    # Start background task
-    asyncio.create_task(complete_task_later(task_id))
-    
+    tasks[task_id] = {"task_id": task_id, "status": "running"}
+    asyncio.create_task(complete_task_later(task_id, duration=random.randint(2, 6)))    
     return task_item(task_id, "running")
 
 
@@ -117,11 +78,5 @@ async def task_status(task_id: int):
     """Poll endpoint for task status"""
     if task_id not in tasks:
         return ""
-    
-    task = tasks[task_id]
-    return task_item(task_id, task["status"])
+    return task_item(task_id, tasks[task_id]["status"])
 
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8000)
