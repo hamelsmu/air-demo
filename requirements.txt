@@ -1,2 +1,4 @@
 air
 fastapi[standard]
+clerk-backend-api
+python-dotenv
