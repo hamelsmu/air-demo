@@ -19,11 +19,8 @@ from fastapi import Request
 from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).with_name(".env"))
-PUBLISHABLE_KEY = os.getenv("NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY")
-SECRET_KEY = os.getenv("CLERK_SECRET_KEY")
-
-if not PUBLISHABLE_KEY: raise RuntimeError("NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY is not set")
-if not SECRET_KEY: raise RuntimeError("CLERK_SECRET_KEY is not set")
+PUBLISHABLE_KEY = os.environ["NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY"]
+SECRET_KEY = os.environ["CLERK_SECRET_KEY"]
 CLERK_JS_SRC = "https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js"
 
 app = air.Air()
