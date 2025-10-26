@@ -1,11 +1,16 @@
 """
 Minimal Air + SQLModel demo with form submission to SQLite database.
 """
+from contextlib import asynccontextmanager
 import air
 from sqlmodel import SQLModel, Field, select, Session, create_engine
 
 engine = create_engine("sqlite:///./contacts.db")
-SQLModel.metadata.create_all(engine)
+
+@asynccontextmanager
+async def lifespan(app):
+    SQLModel.metadata.create_all(engine)
+    yield
 
 class Contact(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
@@ -19,7 +24,7 @@ class ContactForm(air.AirForm):
         email: str = air.AirField(type="email", label="Email Address")
         message: str = air.AirField(min_length=10, max_length=500)
 
-app = air.Air()
+app = air.Air(lifespan=lifespan)
 
 @app.page
 def index():
