@@ -2,7 +2,6 @@
 
 Run with:
     fastapi dev database/main.py
-Requires PostgreSQL running locally.
 """
 import air
 from fastapi import Depends
@@ -12,11 +11,11 @@ from sqlmodel import SQLModel, select, Field, create_engine
 from typing import AsyncGenerator
 
 # Synchronous engine for database setup
-sync_engine = create_engine("postgresql://localhost/air_demo", echo=True)
+sync_engine = create_engine("sqlite:///air_demo.db", echo=True)
 
 # Async engine for database operations
 async_engine = create_async_engine(
-    "postgresql+asyncpg://localhost/air_demo",
+    "sqlite+aiosqlite:///air_demo.db",
     echo=True,
     future=True,
 )

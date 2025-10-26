@@ -1,24 +1,15 @@
 # Database
 
-Minimal Air app using SQLModel with PostgreSQL.
+Minimal Air app using SQLModel with SQLite.
 
 Shows async database operations with HTMX for dynamic updates.
 
-## Setup
+## Run
 
 ```bash
-# Install PostgreSQL if not already installed
-brew install postgresql
-
-# Start PostgreSQL
-brew services start postgresql
-
-# Create database
-createdb air_demo
-
 # Install dependencies
-pip install sqlmodel asyncpg
+pip install sqlmodel aiosqlite
 
-# Run
+# Run (creates air_demo.db automatically)
 fastapi dev database/main.py
 ```

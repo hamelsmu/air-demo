@@ -3,4 +3,4 @@ fastapi[standard]
 clerk-backend-api
 python-dotenv
 sqlmodel
-asyncpg
+aiosqlite
