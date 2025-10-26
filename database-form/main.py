@@ -1,16 +1,13 @@
 """
-Minimal Air + SQLModel demo with form submission to SQLite database.
+Minimal Air + SQLModel demo with Jinja templates and HTML5 validation.
+Uses browser validation instead of server-side Pydantic validation.
 """
-from contextlib import asynccontextmanager
 import air
 from sqlmodel import SQLModel, Field, select, Session, create_engine
+from air.requests import Request
 
+# Database setup
 engine = create_engine("sqlite:///./contacts.db")
-
-@asynccontextmanager
-async def lifespan(app):
-    SQLModel.metadata.create_all(engine)
-    yield
 
 class Contact(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
@@ -18,49 +15,35 @@ class Contact(SQLModel, table=True):
     email: str
     message: str
 
-class ContactForm(air.AirForm):
-    class model(SQLModel):
-        name: str = air.AirField(min_length=2, max_length=50)
-        email: str = air.AirField(type="email", label="Email Address")
-        message: str = air.AirField(min_length=10, max_length=500)
+# Create tables (idempotent - safe to call multiple times)
+SQLModel.metadata.create_all(engine)
 
-app = air.Air(lifespan=lifespan)
+app = air.Air()
+jinja = air.JinjaRenderer(directory="templates")
 
-@app.page
-def index():
-    with Session(engine) as session:
-        contacts = session.exec(select(Contact).order_by(Contact.id.desc())).all()
+@app.get("/")
+def index(request: Request):
+    with Session(engine) as dbsession:
+        contacts = dbsession.exec(select(Contact).order_by(Contact.id.desc())).all()
     
-    return air.layouts.mvpcss(
-        air.Title("Contact Form Demo"),
-        air.H1("Contact Form"),
-        air.Form(
-            ContactForm().render(),
-            air.Button("Submit", type="submit"),
-            method="post",
-            action="/submit"
-        ),
-        air.H2("Saved Contacts", style="margin-top: 40px;"),
-        air.Ul(*[air.Li(f"{c.name} ({c.email}): {c.message}") for c in contacts]) if contacts 
-            else air.Ul(air.Li("No contacts yet.", style="color: gray;")),
+    return jinja(
+        request,
+        name="form.html",
+        contacts=contacts
     )
 
 @app.post("/submit")
-async def submit(request: air.Request):
-    form = await ContactForm.from_request(request)
+async def submit(request: Request):
+    form_data = await request.form()
     
-    if form.is_valid:
-        with Session(engine) as session:
-            session.add(Contact(**form.data.model_dump()))
-            session.commit()
-        return air.layouts.mvpcss(
-            air.H1("Thank you!"),
-            air.P("Your message has been saved."),
-            air.A("Submit another", href="/")
+    # Save to database (HTML5 validates in browser before submission)
+    with Session(engine) as dbsession:
+        contact = Contact(
+            name=form_data.get("name"),
+            email=form_data.get("email"),
+            message=form_data.get("message")
         )
+        dbsession.add(contact)
+        dbsession.commit()
     
-    return air.layouts.mvpcss(
-        air.H1("Validation Error"),
-        air.Form(form.render(), air.Button("Submit", type="submit"), method="post", action="/submit"),
-        air.A("Back", href="/")
-    )
+    return jinja(request, name="success.html")

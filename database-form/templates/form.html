@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+<head>
+    <link href="https://unpkg.com/mvp.css" rel="stylesheet" />
+    <title>Contact Form Demo</title>
+</head>
+<body>
+    <main>
+        <h1>Contact Form</h1>
+        <form action="/submit" method="post">
+            <label for="name">Name</label>
+            <input 
+                name="name" 
+                type="text" 
+                id="name"
+                minlength="2"
+                maxlength="50"
+                required
+            />
+            
+            <label for="email">Email Address</label>
+            <input 
+                name="email" 
+                type="email" 
+                id="email"
+                required
+            />
+            
+            <label for="message">Message</label>
+            <input 
+                name="message" 
+                type="text" 
+                id="message"
+                minlength="10"
+                maxlength="500"
+                required
+            />
+            
+            <button type="submit">Submit</button>
+        </form>
+        
+        <h2 style="margin-top: 40px;">Saved Contacts</h2>
+        <ul>
+            {% if contacts %}
+                {% for contact in contacts %}
+                <li>{{ contact.name }} ({{ contact.email }}): {{ contact.message }}</li>
+                {% endfor %}
+            {% else %}
+                <li style="color: gray;">No contacts yet.</li>
+            {% endif %}
+        </ul>
+    </main>
+</body>
+</html>
