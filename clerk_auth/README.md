@@ -2,6 +2,8 @@
 
 Minimal Air application demonstrating authentication using Clerk SDK.
 
+**Clerk Documentation**: https://clerk.com/docs
+
 ## Setup
 
 Requires a `.env` file with your Clerk API keys (not checked into git):
