@@ -1,8 +1,21 @@
-# Air + Clerk Authentication Demo - Technical Understanding
+# Air Demo Repository - Technical Understanding
 
 ## Project Overview
 
-This is a minimal FastAPI application demonstrating authentication using:
+This repository contains minimal examples demonstrating [Air](https://feldroy.github.io/air/) framework patterns for building AI-ready web applications.
+
+**Air Documentation**: https://feldroy.github.io/air/
+
+## Examples
+
+### 1. Background Tasks (`background-tasks/`)
+Contrasts HTMX polling vs SSE for background job progress updates.
+
+### 2. Database Form (`database-form/`)
+Form validation with SQLModel and SQLite persistence. Uses SQLModel ORM with synchronous sessions (not air.ext.sqlmodel which doesn't exist in current Air versions).
+
+### 3. Clerk Authentication (`clerk_auth/`)
+Minimal FastAPI application demonstrating authentication using:
 - **Air**: Python HTML generation framework built on FastAPI
 - **Clerk**: Modern authentication platform with prebuilt UI components
 - **Python Clerk SDK**: Backend session verification
