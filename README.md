@@ -5,6 +5,7 @@ Minimal [Air](https://feldroy.github.io/air/) examples that highlight building b
 ## Demos
 
 - `background-tasks/` – contrasts HTMX polling and SSE updates for background job progress.
+- `database/` – async database operations using SQLModel with PostgreSQL.
 
 ## Run
 
