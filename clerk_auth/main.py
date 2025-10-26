@@ -47,12 +47,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 AUTH_SCRIPT = """
 document.addEventListener('DOMContentLoaded', async () => {
-  if (!window.Clerk) return;
-
   await window.Clerk.load();
-
+  
   const button = document.getElementById('sign-out');
-  if (!button) return;
 
   button.addEventListener('click', async () => {
     await window.Clerk.signOut({ redirectUrl: '/' });
