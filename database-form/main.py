@@ -1,37 +1,30 @@
 """
 Minimal Air + SQLModel demo with form submission to SQLite database.
 """
-from contextlib import asynccontextmanager
 import air
 from sqlmodel import SQLModel, Field, select, Session, create_engine
-from fastapi import Depends
 
-engine = create_engine("sqlite:///./contacts.db", echo=False)
-
-def get_session():
-    with Session(engine) as session:
-        yield session
+engine = create_engine("sqlite:///./contacts.db")
+SQLModel.metadata.create_all(engine)
 
 class Contact(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    name: str = air.AirField(min_length=2, max_length=50)
-    email: str = air.AirField(type="email", label="Email Address")
-    message: str = air.AirField(min_length=10, max_length=500)
+    name: str
+    email: str
+    message: str
 
 class ContactForm(air.AirForm):
-    class model(Contact):
-        pass
+    class model(SQLModel):
+        name: str = air.AirField(min_length=2, max_length=50)
+        email: str = air.AirField(type="email", label="Email Address")
+        message: str = air.AirField(min_length=10, max_length=500)
 
-@asynccontextmanager
-async def lifespan(app):
-    SQLModel.metadata.create_all(engine)
-    yield
-
-app = air.Air(lifespan=lifespan)
+app = air.Air()
 
 @app.page
-def index(session: Session = Depends(get_session)):
-    contacts = session.exec(select(Contact).order_by(Contact.id.desc())).all()
+def index():
+    with Session(engine) as session:
+        contacts = session.exec(select(Contact).order_by(Contact.id.desc())).all()
     
     return air.layouts.mvpcss(
         air.Title("Contact Form Demo"),
@@ -48,15 +41,16 @@ def index(session: Session = Depends(get_session)):
     )
 
 @app.post("/submit")
-async def submit(request: air.Request, session: Session = Depends(get_session)):
+async def submit(request: air.Request):
     form = await ContactForm.from_request(request)
     
     if form.is_valid:
-        session.add(Contact(**form.data.model_dump()))
-        session.commit()
+        with Session(engine) as session:
+            session.add(Contact(**form.data.model_dump()))
+            session.commit()
         return air.layouts.mvpcss(
             air.H1("Thank you!"),
-            air.P(f"Your message has been saved."),
+            air.P("Your message has been saved."),
             air.A("Submit another", href="/")
         )
     
