@@ -1,14 +1,8 @@
 # Database Form
 
-Contact form with HTML5 validation and SQLite persistence using SQLModel.
+Minimal Air apps with Jinja templates, HTML5 validation, and database persistence.
 
-## Features
-
-- HTML5 client-side validation
-- Jinja templates for form rendering
-- SQLite database with SQLModel ORM
-
-## Run
+## SQLite Version (`main.py`)
 
 ```bash
 uv venv
@@ -17,4 +11,25 @@ uv pip install air sqlmodel "fastapi[standard]"
 fastapi dev main.py
 ```
 
-Visit http://localhost:8000 to submit contacts. Data is saved to `contacts.db`.
+## PostgreSQL Version (`main-postgres.py`)
+
+```bash
+brew install postgresql@17
+brew services start postgresql@17
+createdb contacts  # Creates database (ORM creates tables)
+
+uv pip install air sqlmodel "fastapi[standard]" psycopg2-binary
+
+# Unset DATABASE_URL to use default (your macOS username)
+unset DATABASE_URL
+fastapi dev main-postgres.py
+```
+
+Cleanup: `dropdb contacts && brew services stop postgresql@17`
+
+## Features
+
+- HTML5 validation (browser validates minlength, maxlength, required, email)
+- Jinja templates with validation attributes
+- SQLModel ORM (creates tables automatically)
+- No server-side validation (HTML5 only)

@@ -8,4 +8,4 @@ Each folder contains a standalone example with its own README:
 
 - [background-tasks/](background-tasks/) – HTMX polling vs SSE for background job progress updates
 - [clerk_auth/](clerk_auth/) – Authentication with Clerk SDK
-- [database-form/](database-form/) – Form validation with SQLModel and SQLite persistence
+- [database-form/](database-form/) – HTML5 form validation with SQLModel (SQLite and PostgreSQL)
