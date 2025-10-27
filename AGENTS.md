@@ -1,5 +1,14 @@
 # Air Framework Guide
 
+## Workflow
+
+**IMPORTANT: Always use branches, never push directly to main.**
+
+1. Create branch from Linear issue git branch name (e.g., `hh/par-6-chatbot-interface-example`)
+2. Make changes and commit
+3. Push branch and create PR with `gh pr create`
+4. Never push directly to main
+
 ## Overview
 
 [Air](https://feldroy.github.io/air/) is a FastAPI-powered web framework that generates HTML using Python classes instead of templates. It's designed for HTMX-first development with built-in Pydantic form validation.
