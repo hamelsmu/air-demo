@@ -14,6 +14,20 @@
 
 Use the llms.txt file to quickly locate relevant documentation pages for specific Air features.
 
+## Examples in This Repository
+
+### database-form/
+HTML5 form validation with Jinja templates and SQLModel ORM. Two versions:
+- `main.py` - SQLite (auto-creates database file)
+- `main-postgres.py` - PostgreSQL (requires `createdb` first)
+
+**Key learnings:**
+- `air.ext.sqlmodel` doesn't exist in current Air versions - use standard SQLModel
+- Air does NOT auto-generate HTML5 validation attributes from Pydantic constraints ([issue #687](https://github.com/feldroy/air/issues/687))
+- Use Jinja templates to manually add HTML5 attributes (minlength, maxlength, required)
+- Import-time `SQLModel.metadata.create_all(engine)` works for both SQLite and PostgreSQL
+- PostgreSQL: `createdb` creates database, ORM creates tables
+
 ## Core Concepts
 
 ### Air Tags (HTML as Python)
