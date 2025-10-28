@@ -27,9 +27,11 @@ window.initEditor = function(container, initialHTML) {
             StarterKit,
             Underline,
             Link.configure({
-                openOnClick: false,
+                openOnClick: true,
                 HTMLAttributes: {
                     class: 'text-primary hover:underline',
+                    target: '_blank',
+                    rel: 'noopener noreferrer',
                 }
             })
         ],
@@ -167,31 +169,15 @@ function setupKeyboardShortcuts(editor, form) {
         const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
         const modifier = isMac ? e.metaKey : e.ctrlKey;
         
-        if (modifier) {
-            switch(e.key.toLowerCase()) {
-                case 's':
-                    e.preventDefault();
-                    form.requestSubmit();
-                    break;
-                case 'b':
-                    e.preventDefault();
-                    editor.chain().focus().toggleBold().run();
-                    break;
-                case 'i':
-                    e.preventDefault();
-                    editor.chain().focus().toggleItalic().run();
-                    break;
-                case 'k':
-                    e.preventDefault();
-                    if (editor.isActive('link')) {
-                        editor.chain().focus().unsetLink().run();
-                    } else {
-                        const url = prompt('Enter URL:');
-                        if (url) {
-                            editor.chain().focus().setLink({ href: url }).run();
-                        }
-                    }
-                    break;
+        if (modifier && e.key.toLowerCase() === 'k') {
+            e.preventDefault();
+            if (editor.isActive('link')) {
+                editor.chain().focus().unsetLink().run();
+            } else {
+                const url = prompt('Enter URL:');
+                if (url) {
+                    editor.chain().focus().setLink({ href: url }).run();
+                }
             }
         }
     });
