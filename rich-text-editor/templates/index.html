@@ -4,149 +4,7 @@
     <title>TipTap Editor - Air Demo</title>
     <link rel="stylesheet" href="/static/style.css">
     <script src="https://unpkg.com/htmx.org@2.0.0"></script>
-    <script type="module">
-        import { Editor, Extension } from 'https://esm.sh/@tiptap/core@2.10.3';
-        import StarterKit from 'https://esm.sh/@tiptap/starter-kit@2.10.3';
-        import Underline from 'https://esm.sh/@tiptap/extension-underline@2.10.3';
-        
-        // Add Tab key support
-        const TabExtension = Extension.create({
-            name: 'tabExtension',
-            addKeyboardShortcuts() {
-                return {
-                    'Tab': () => {
-                        this.editor.commands.insertContent('\t');
-                        return true;
-                    },
-                }
-            },
-        });
-        
-        window.initEditor = function(container, initialHTML) {
-            const form = container.closest('form');
-            
-            const editor = new Editor({
-                element: container,
-                extensions: [StarterKit, Underline, TabExtension],
-                content: initialHTML || '',
-                editorProps: { 
-                    attributes: { 
-                        class: 'tiptap'
-                    }
-                },
-                // Reset save button when user starts editing
-                onUpdate: () => {
-                    const btn = document.getElementById('save-btn');
-                    if (btn && btn.classList.contains('saved')) {
-                        btn.textContent = 'Save';
-                        btn.classList.remove('saved');
-                    }
-                }
-            });
-            
-            // Store editor instance on form for access during submission
-            if (form) form._editor = editor;
-            
-            // Wire up toolbar buttons using event delegation
-            const toolbar = container.parentElement.querySelector('.button-group');
-            if (toolbar) {
-                // Map button actions to editor commands
-                const runAction = (action) => {
-                    const chain = editor.chain().focus();
-                    
-                    switch (action) {
-                        case 'bold': case 'italic': case 'underline': case 'strike': 
-                        case 'code': case 'blockquote':
-                            chain[`toggle${action.charAt(0).toUpperCase() + action.slice(1)}`]().run();
-                            break;
-                        case 'h1': chain.toggleHeading({ level: 1 }).run(); break;
-                        case 'h2': chain.toggleHeading({ level: 2 }).run(); break;
-                        case 'h3': chain.toggleHeading({ level: 3 }).run(); break;
-                        case 'bullet-list': chain.toggleBulletList().run(); break;
-                        case 'ordered-list': chain.toggleOrderedList().run(); break;
-                        case 'code-block': chain.toggleCodeBlock().run(); break;
-                        case 'undo': chain.undo().run(); break;
-                        case 'redo': chain.redo().run(); break;
-                    }
-                };
-                
-                // Single click handler for all toolbar buttons
-                toolbar.addEventListener('click', (e) => {
-                    const btn = e.target.closest('[data-action]');
-                    if (btn && !btn.disabled) runAction(btn.dataset.action);
-                });
-                
-                // Update button states (active/disabled) when content or cursor position changes
-                const updateToolbar = () => {
-                    // Config for active state checks
-                    const activeStates = {
-                        bold: ['bold'],
-                        italic: ['italic'],
-                        underline: ['underline'],
-                        strike: ['strike'],
-                        code: ['code'],
-                        h1: ['heading', { level: 1 }],
-                        h2: ['heading', { level: 2 }],
-                        h3: ['heading', { level: 3 }],
-                        'bullet-list': ['bulletList'],
-                        'ordered-list': ['orderedList'],
-                        'code-block': ['codeBlock'],
-                        blockquote: ['blockquote']
-                    };
-                    
-                    Object.entries(activeStates).forEach(([action, args]) => {
-                        const btn = toolbar.querySelector(`[data-action="${action}"]`);
-                        if (btn) btn.classList.toggle('is-active', editor.isActive(...args));
-                    });
-                    
-                    const undoBtn = toolbar.querySelector('[data-action="undo"]');
-                    const redoBtn = toolbar.querySelector('[data-action="redo"]');
-                    if (undoBtn) undoBtn.disabled = !editor.can().undo();
-                    if (redoBtn) redoBtn.disabled = !editor.can().redo();
-                };
-                
-                editor.on('update', updateToolbar);
-                editor.on('selectionUpdate', updateToolbar);
-                updateToolbar();
-            }
-        };
-        
-        // Initialize all TipTap editors on the page
-        // This runs on page load AND after HTMX swaps new content in
-        // (e.g., when you click "Load" and a new editor form is inserted)
-        function initAllEditors() {
-            document.querySelectorAll('[data-tiptap]:not([data-initialized])').forEach(container => {
-                container.dataset.initialized = 'true';
-                const initialHtml = container.dataset.initialHtml;
-                window.initEditor(container, initialHtml ? JSON.parse(initialHtml) : null);
-            });
-        }
-        
-        document.addEventListener('DOMContentLoaded', initAllEditors);
-        document.body.addEventListener('htmx:afterSwap', initAllEditors);
-        
-        // Inject editor content into HTMX form submissions
-        document.body.addEventListener('htmx:configRequest', (evt) => {
-            const form = evt.detail.elt;
-            if (form._editor) {
-                evt.detail.parameters.content = form._editor.getHTML();
-            }
-        });
-        
-        // Reset save button after animation
-        document.body.addEventListener('htmx:afterSettle', () => {
-            const btn = document.getElementById('save-btn');
-            if (btn && btn.classList.contains('saved')) {
-                setTimeout(() => {
-                    const fresh = document.getElementById('save-btn');
-                    if (fresh && fresh.classList.contains('saved')) {
-                        fresh.textContent = 'Save';
-                        fresh.classList.remove('saved');
-                    }
-                }, 2000);
-            }
-        });
-    </script>
+    <script type="module" src="/static/js/editor.js"></script>
 </head>
 <body>
     <div id="app">
@@ -165,7 +23,8 @@
                         <button type="button" data-action="italic">Italic</button>
                         <button type="button" data-action="underline">Underline</button>
                         <button type="button" data-action="strike">Strike</button>
-                    <button type="button" data-action="code">Code</button>
+                        <button type="button" data-action="code">Code</button>
+                        <button type="button" data-action="link">Link</button>
                         <button type="button" data-action="h1">H1</button>
                         <button type="button" data-action="h2">H2</button>
                         <button type="button" data-action="h3">H3</button>

@@ -28,9 +28,7 @@ app.mount("/static", air.StaticFiles(directory="static"), name="static")
 @app.get("/")
 def index(request: Request):
     """Main page"""
-    with Session(engine) as dbsession:
-        documents = dbsession.exec(select(Document).order_by(Document.updated_at.desc())).all()
-    return jinja(request, name="index.html", documents=documents)
+    return jinja(request, name="index.html")
 
 @app.get("/load/{doc_id}")
 def load_document(doc_id: int, request: Request):
@@ -39,8 +37,37 @@ def load_document(doc_id: int, request: Request):
         doc = dbsession.get(Document, doc_id)
         if not doc:
             return '<div id="editor-form"><p class="error">Document not found</p></div>'
-
-    return jinja(request, name="editor-form.html", doc=doc, initial_content=doc.content)
+    
+    return f'''<div id="editor-form">
+    <form hx-post="/save" hx-target="#status">
+        <input name="title" type="text" value="{doc.title}" required placeholder="Document Title" />
+        <input name="doc_id" id="doc_id" type="hidden" value="{doc.id}" />
+        
+        <div class="control-group">
+            <div class="button-group">
+                <button type="button" data-action="bold">Bold</button>
+                <button type="button" data-action="italic">Italic</button>
+                <button type="button" data-action="underline">Underline</button>
+                <button type="button" data-action="strike">Strike</button>
+                <button type="button" data-action="code">Code</button>
+                <button type="button" data-action="link">Link</button>
+                <button type="button" data-action="h1">H1</button>
+                <button type="button" data-action="h2">H2</button>
+                <button type="button" data-action="h3">H3</button>
+                <button type="button" data-action="bullet-list">Bullet list</button>
+                <button type="button" data-action="ordered-list">Ordered list</button>
+                <button type="button" data-action="code-block">Code block</button>
+                <button type="button" data-action="blockquote">Blockquote</button>
+                <button type="button" data-action="undo">Undo</button>
+                <button type="button" data-action="redo">Redo</button>
+            </div>
+            <div class="editor-container" data-tiptap="" data-initial-html='{doc.content}'></div>
+        </div>
+        
+        <button id="save-btn" type="submit">Save</button>
+        <button type="button" onclick="window.location.href='/'">New</button>
+    </form>
+</div>'''
 
 @app.post("/save")
 async def save_document(request: Request):
@@ -100,4 +127,17 @@ def documents_list(request: Request):
     """Return just the documents list fragment"""
     with Session(engine) as dbsession:
         documents = dbsession.exec(select(Document).order_by(Document.updated_at.desc())).all()
-    return jinja(request, name="documents-list.html", documents=documents)
+    
+    html_parts = []
+    for d in documents:
+        html_parts.append(f'''<div class="document-item">
+    <h3>{d.title}</h3>
+    <p>Last updated: {d.updated_at[:19]}</p>
+    <button hx-get="/load/{d.id}" hx-target="#editor-form" hx-swap="outerHTML">Load</button>
+    <button hx-delete="/delete/{d.id}" hx-target="#status" hx-confirm="Delete '{d.title}'?">Delete</button>
+</div>''')
+    
+    if not html_parts:
+        return '<p class="text-gray-500">No documents yet. Create your first document above!</p>'
+    
+    return '\n'.join(html_parts)
