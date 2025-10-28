@@ -21,7 +21,6 @@ class Document(SQLModel, table=True):
 SQLModel.metadata.create_all(engine)
 
 app = air.Air()
-jinja = air.JinjaRenderer(directory="templates")
 templates = Jinja2Templates(directory="templates")
 
 # Serve static files
@@ -30,7 +29,7 @@ app.mount("/static", air.StaticFiles(directory="static"), name="static")
 @app.get("/")
 def index(request: Request):
     """Main page"""
-    return jinja(request, name="index.html")
+    return templates.TemplateResponse("index.html", {"request": request})
 
 @app.get("/load/{doc_id}")
 def load_document(doc_id: int, request: Request):
