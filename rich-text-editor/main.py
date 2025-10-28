@@ -31,7 +31,7 @@ def index(request: Request):
     """Main page"""
     with Session(engine) as dbsession:
         documents = dbsession.exec(select(Document).order_by(Document.updated_at.desc())).all()
-    return jinja(request, name="index.html", documents=documents, doc=None)
+    return jinja(request, name="index.html", documents=documents)
 
 @app.get("/load/{doc_id}")
 def load_document(doc_id: int, request: Request):

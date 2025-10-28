@@ -17,12 +17,9 @@
                 editorProps: { attributes: { class: 'tiptap' } }
             });
             
-            const form = container.closest('form');
-            if (form) {
-                form.addEventListener('htmx:configRequest', function() {
-                    document.getElementById('editor-content').value = editor.getHTML();
-                });
-            }
+            container.closest('form').addEventListener('htmx:configRequest', function() {
+                document.getElementById('editor-content').value = editor.getHTML();
+            });
         };
         
         function initAllEditors() {
@@ -44,24 +41,13 @@
         <div id="status"></div>
         
         <div id="editor-form">
-        {% if doc %}
-        <form hx-post="/save" hx-target="#status">
-            <input name="title" type="text" value="{{ doc.title }}" required placeholder="Document Title" />
-            <input name="doc_id" type="hidden" value="{{ doc.id }}" />
-            <div class="editor-container" data-tiptap="" data-initial-html="{{ initial_content }}"></div>
-            <input name="content" type="hidden" id="editor-content" />
-            <button type="submit" class="primary">Save Document</button>
-            <button type="button" hx-get="/" hx-target="body" hx-swap="outerHTML">New Document</button>
-        </form>
-        {% else %}
-        <form hx-post="/save" hx-target="#status">
-            <input name="title" type="text" required placeholder="Document Title" />
-            <div class="editor-container" data-tiptap=""></div>
-            <input name="content" type="hidden" id="editor-content" />
-            <button type="submit" class="primary">Save Document</button>
-        </form>
-        {% endif %}
-    </div>
+            <form hx-post="/save" hx-target="#status">
+                <input name="title" type="text" required placeholder="Document Title" />
+                <div class="editor-container" data-tiptap=""></div>
+                <input name="content" type="hidden" id="editor-content" />
+                <button type="submit" class="primary">Save Document</button>
+            </form>
+        </div>
 
     <div class="document-list">
         <h2>Saved Documents</h2>
