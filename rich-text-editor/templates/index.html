@@ -9,6 +9,9 @@
         import StarterKit from 'https://cdn.jsdelivr.net/npm/@tiptap/starter-kit@2.10.3/+esm';
         
         window.initEditor = function(container, initialHTML) {
+            const form = container.closest('form');
+            const hiddenField = form?.querySelector('input[name="content"]');
+            
             const editor = new Editor({
                 element: container,
                 extensions: [StarterKit],
@@ -18,64 +21,79 @@
                 // TipTap stores content in the DOM, not in a form field, so we
                 // keep the hidden field updated so it's included when the form submits
                 onUpdate: ({ editor }) => {
-                    document.getElementById('editor-content').value = editor.getHTML();
+                    if (hiddenField) hiddenField.value = editor.getHTML();
                 }
             });
             
-            // Wire up toolbar buttons - each button's data-action maps to a TipTap command
+            // Wire up toolbar buttons using event delegation
             const toolbar = container.parentElement.querySelector('.button-group');
             if (toolbar) {
-                const actions = {
-                    bold: () => editor.chain().focus().toggleBold().run(),
-                    italic: () => editor.chain().focus().toggleItalic().run(),
-                    strike: () => editor.chain().focus().toggleStrike().run(),
-                    code: () => editor.chain().focus().toggleCode().run(),
-                    h1: () => editor.chain().focus().toggleHeading({ level: 1 }).run(),
-                    h2: () => editor.chain().focus().toggleHeading({ level: 2 }).run(),
-                    h3: () => editor.chain().focus().toggleHeading({ level: 3 }).run(),
-                    'bullet-list': () => editor.chain().focus().toggleBulletList().run(),
-                    'ordered-list': () => editor.chain().focus().toggleOrderedList().run(),
-                    'code-block': () => editor.chain().focus().toggleCodeBlock().run(),
-                    blockquote: () => editor.chain().focus().toggleBlockquote().run(),
-                    undo: () => editor.chain().focus().undo().run(),
-                    redo: () => editor.chain().focus().redo().run()
+                // Map button actions to editor commands
+                const runAction = (action) => {
+                    const chain = editor.chain().focus();
+                    switch (action) {
+                        case 'bold': case 'italic': case 'strike': 
+                        case 'code': case 'blockquote':
+                            chain[`toggle${action.charAt(0).toUpperCase() + action.slice(1)}`]().run();
+                            break;
+                        case 'h1': chain.toggleHeading({ level: 1 }).run(); break;
+                        case 'h2': chain.toggleHeading({ level: 2 }).run(); break;
+                        case 'h3': chain.toggleHeading({ level: 3 }).run(); break;
+                        case 'bullet-list': chain.toggleBulletList().run(); break;
+                        case 'ordered-list': chain.toggleOrderedList().run(); break;
+                        case 'code-block': chain.toggleCodeBlock().run(); break;
+                        case 'undo': chain.undo().run(); break;
+                        case 'redo': chain.redo().run(); break;
+                    }
                 };
                 
-                Object.keys(actions).forEach(action => {
-                    toolbar.querySelector(`[data-action="${action}"]`).onclick = actions[action];
+                // Single click handler for all toolbar buttons
+                toolbar.addEventListener('click', (e) => {
+                    const btn = e.target.closest('[data-action]');
+                    if (btn && !btn.disabled) runAction(btn.dataset.action);
                 });
                 
                 // Update button states (active/disabled) when content or cursor position changes
-                editor.on('update', () => updateToolbarState(editor, toolbar));
-                editor.on('selectionUpdate', () => updateToolbarState(editor, toolbar));
-                updateToolbarState(editor, toolbar);
+                const updateToolbar = () => {
+                    // Config for active state checks
+                    const activeStates = {
+                        bold: ['bold'],
+                        italic: ['italic'],
+                        strike: ['strike'],
+                        code: ['code'],
+                        h1: ['heading', { level: 1 }],
+                        h2: ['heading', { level: 2 }],
+                        h3: ['heading', { level: 3 }],
+                        'bullet-list': ['bulletList'],
+                        'ordered-list': ['orderedList'],
+                        'code-block': ['codeBlock'],
+                        blockquote: ['blockquote']
+                    };
+                    
+                    Object.entries(activeStates).forEach(([action, args]) => {
+                        const btn = toolbar.querySelector(`[data-action="${action}"]`);
+                        if (btn) btn.classList.toggle('is-active', editor.isActive(...args));
+                    });
+                    
+                    const undoBtn = toolbar.querySelector('[data-action="undo"]');
+                    const redoBtn = toolbar.querySelector('[data-action="redo"]');
+                    if (undoBtn) undoBtn.disabled = !editor.can().undo();
+                    if (redoBtn) redoBtn.disabled = !editor.can().redo();
+                };
+                
+                editor.on('update', updateToolbar);
+                editor.on('selectionUpdate', updateToolbar);
+                updateToolbar();
             }
         };
-        
-        function updateToolbarState(editor, toolbar) {
-            toolbar.querySelector('[data-action="bold"]').classList.toggle('is-active', editor.isActive('bold'));
-            toolbar.querySelector('[data-action="italic"]').classList.toggle('is-active', editor.isActive('italic'));
-            toolbar.querySelector('[data-action="strike"]').classList.toggle('is-active', editor.isActive('strike'));
-            toolbar.querySelector('[data-action="code"]').classList.toggle('is-active', editor.isActive('code'));
-            toolbar.querySelector('[data-action="h1"]').classList.toggle('is-active', editor.isActive('heading', { level: 1 }));
-            toolbar.querySelector('[data-action="h2"]').classList.toggle('is-active', editor.isActive('heading', { level: 2 }));
-            toolbar.querySelector('[data-action="h3"]').classList.toggle('is-active', editor.isActive('heading', { level: 3 }));
-            toolbar.querySelector('[data-action="bullet-list"]').classList.toggle('is-active', editor.isActive('bulletList'));
-            toolbar.querySelector('[data-action="ordered-list"]').classList.toggle('is-active', editor.isActive('orderedList'));
-            toolbar.querySelector('[data-action="code-block"]').classList.toggle('is-active', editor.isActive('codeBlock'));
-            toolbar.querySelector('[data-action="blockquote"]').classList.toggle('is-active', editor.isActive('blockquote'));
-            toolbar.querySelector('[data-action="undo"]').disabled = !editor.can().undo();
-            toolbar.querySelector('[data-action="redo"]').disabled = !editor.can().redo();
-        }
         
         // Initialize all TipTap editors on the page
         // This runs on page load AND after HTMX swaps new content in
         // (e.g., when you click "Load" and a new editor form is inserted)
         function initAllEditors() {
             document.querySelectorAll('[data-tiptap]:not([data-initialized])').forEach(container => {
-                container.setAttribute('data-initialized', 'true');
-                const initialHtml = container.dataset.initialHtml;
-                window.initEditor(container, initialHtml ? JSON.parse(initialHtml) : null);
+                container.dataset.initialized = 'true';
+                window.initEditor(container, container.dataset.initialHtml || null);
             });
         }
         
