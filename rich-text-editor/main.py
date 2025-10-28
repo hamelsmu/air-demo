@@ -41,8 +41,7 @@ def load_document(doc_id: int, request: Request):
         if not doc:
             return '<div id="editor-form"><p class="error">Document not found</p></div>'
 
-    initial_content = json.dumps(doc.content)
-    return jinja(request, name="editor-form.html", doc=doc, initial_content=initial_content)
+    return jinja(request, name="editor-form.html", doc=doc, initial_content=doc.content)
 
 @app.post("/save")
 async def save_document(request: Request):

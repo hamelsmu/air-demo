@@ -19,7 +19,7 @@
                 <button type="button" data-action="undo">Undo</button>
                 <button type="button" data-action="redo">Redo</button>
             </div>
-            <div class="editor-container" data-tiptap="" data-initial-html="{{ initial_content }}"></div>
+            <div class="editor-container" data-tiptap="" data-initial-html='{{ initial_content | tojson }}'></div>
         </div>
         
         <input name="content" type="hidden" id="editor-content" />

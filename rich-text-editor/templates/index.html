@@ -93,7 +93,8 @@
         function initAllEditors() {
             document.querySelectorAll('[data-tiptap]:not([data-initialized])').forEach(container => {
                 container.dataset.initialized = 'true';
-                window.initEditor(container, container.dataset.initialHtml || null);
+                const initialHtml = container.dataset.initialHtml;
+                window.initEditor(container, initialHtml ? JSON.parse(initialHtml) : null);
             });
         }
         
