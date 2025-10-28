@@ -16,7 +16,19 @@
                 element: container,
                 extensions: [StarterKit],
                 content: initialHTML || '<p>Start writing your document...</p>',
-                editorProps: { attributes: { class: 'tiptap' } },
+                editorProps: { 
+                    attributes: { class: 'tiptap' },
+                    // Prevent Enter from submitting the form, but let TipTap handle newlines
+                    handleDOMEvents: {
+                        keydown: (_view, event) => {
+                            if (event.key === 'Enter' && !event.isComposing) {
+                                event.preventDefault();
+                                return false; // Let TipTap insert newline
+                            }
+                            return false;
+                        }
+                    }
+                },
                 // Sync editor content to hidden field on every change
                 // TipTap stores content in the DOM, not in a form field, so we
                 // keep the hidden field updated so it's included when the form submits
@@ -25,15 +37,6 @@
                 }
             });
             
-            // Prevent Enter key in editor from submitting the form
-            if (form) {
-                form.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter' && e.target.closest('.tiptap')) {
-                        e.stopPropagation();
-                    }
-                });
-            }
-            
             // Wire up toolbar buttons using event delegation
             const toolbar = container.parentElement.querySelector('.button-group');
             if (toolbar) {
@@ -41,7 +44,7 @@
                 const runAction = (action) => {
                     const chain = editor.chain().focus();
                     switch (action) {
-                        case 'bold': case 'italic': case 'strike': 
+                        case 'bold': case 'italic': case 'underline': case 'strike': 
                         case 'code': case 'blockquote':
                             chain[`toggle${action.charAt(0).toUpperCase() + action.slice(1)}`]().run();
                             break;
@@ -68,6 +71,7 @@
                     const activeStates = {
                         bold: ['bold'],
                         italic: ['italic'],
+                        underline: ['underline'],
                         strike: ['strike'],
                         code: ['code'],
                         h1: ['heading', { level: 1 }],
@@ -125,8 +129,9 @@
                     <div class="button-group">
                         <button type="button" data-action="bold">Bold</button>
                         <button type="button" data-action="italic">Italic</button>
+                        <button type="button" data-action="underline">Underline</button>
                         <button type="button" data-action="strike">Strike</button>
-                        <button type="button" data-action="code">Code</button>
+                    <button type="button" data-action="code">Code</button>
                         <button type="button" data-action="h1">H1</button>
                         <button type="button" data-action="h2">H2</button>
                         <button type="button" data-action="h3">H3</button>
