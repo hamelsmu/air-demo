@@ -7,6 +7,7 @@
     <script type="module">
         import { Editor, Extension } from 'https://esm.sh/@tiptap/core@2.10.3';
         import StarterKit from 'https://esm.sh/@tiptap/starter-kit@2.10.3';
+        import Underline from 'https://esm.sh/@tiptap/extension-underline@2.10.3';
         
         // Add Tab key support
         const TabExtension = Extension.create({
@@ -23,26 +24,28 @@
         
         window.initEditor = function(container, initialHTML) {
             const form = container.closest('form');
-            const hiddenField = form?.querySelector('input[name="content"]');
             
             const editor = new Editor({
                 element: container,
-                extensions: [StarterKit, TabExtension],
+                extensions: [StarterKit, Underline, TabExtension],
                 content: initialHTML || '',
                 editorProps: { 
                     attributes: { 
                         class: 'tiptap'
                     }
                 },
-                // Sync initial content to hidden field
-                onCreate: ({ editor }) => {
-                    if (hiddenField) hiddenField.value = editor.getHTML();
-                },
-                // Sync editor content to hidden field on every change
-                onUpdate: ({ editor }) => {
-                    if (hiddenField) hiddenField.value = editor.getHTML();
+                // Reset save button when user starts editing
+                onUpdate: () => {
+                    const btn = document.getElementById('save-btn');
+                    if (btn && btn.classList.contains('saved')) {
+                        btn.textContent = 'Save';
+                        btn.classList.remove('saved');
+                    }
                 }
             });
+            
+            // Store editor instance on form for access during submission
+            if (form) form._editor = editor;
             
             // Wire up toolbar buttons using event delegation
             const toolbar = container.parentElement.querySelector('.button-group');
@@ -121,6 +124,28 @@
         
         document.addEventListener('DOMContentLoaded', initAllEditors);
         document.body.addEventListener('htmx:afterSwap', initAllEditors);
+        
+        // Inject editor content into HTMX form submissions
+        document.body.addEventListener('htmx:configRequest', (evt) => {
+            const form = evt.detail.elt;
+            if (form._editor) {
+                evt.detail.parameters.content = form._editor.getHTML();
+            }
+        });
+        
+        // Reset save button after animation
+        document.body.addEventListener('htmx:afterSettle', () => {
+            const btn = document.getElementById('save-btn');
+            if (btn && btn.classList.contains('saved')) {
+                setTimeout(() => {
+                    const fresh = document.getElementById('save-btn');
+                    if (fresh && fresh.classList.contains('saved')) {
+                        fresh.textContent = 'Save';
+                        fresh.classList.remove('saved');
+                    }
+                }, 2000);
+            }
+        });
     </script>
 </head>
 <body>
@@ -154,8 +179,8 @@
                     <div class="editor-container" data-tiptap=""></div>
                 </div>
                 
-                <input name="content" type="hidden" id="editor-content" />
-                <button type="submit" class="primary">Save Document</button>
+                <button id="save-btn" type="submit">Save</button>
+                <button type="button" onclick="window.location.href='/'">New</button>
             </form>
         </div>
 

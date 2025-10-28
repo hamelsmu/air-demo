@@ -23,8 +23,7 @@
             <div class="editor-container" data-tiptap="" data-initial-html='{{ initial_content | tojson }}'></div>
         </div>
         
-        <input name="content" type="hidden" id="editor-content" />
-        <button type="submit" class="primary">Save Document</button>
-        <button type="button" onclick="window.location.href='/'">New Document</button>
+        <button id="save-btn" type="submit">Save</button>
+        <button type="button" onclick="window.location.href='/'">New</button>
     </form>
 </div>

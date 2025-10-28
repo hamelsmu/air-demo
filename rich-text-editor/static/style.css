@@ -29,6 +29,15 @@ body {
     margin-bottom: 1rem;
 }
 
+.editor-container {
+    border: 1px solid var(--gray-3);
+    border-radius: 0.5rem;
+    background: var(--white);
+    min-height: 400px;
+    max-height: 800px;
+    overflow-y: auto;
+}
+
 .button-group {
     display: flex;
     flex-wrap: wrap;
@@ -72,7 +81,8 @@ body {
 .tiptap {
     outline: none;
     padding: 1rem;
-    min-height: 200px;
+    min-height: 380px;
+    cursor: text;
 }
 
 .tiptap :first-child {
@@ -81,10 +91,6 @@ body {
 
 .tiptap p {
     margin: 0.5em 0;
-}
-
-.tiptap p:first-child {
-    margin-top: 0;
 }
 
 .tiptap p:last-child {
@@ -180,18 +186,48 @@ input[type="text"] {
     font-size: 1rem;
 }
 
-button.primary { 
-    background: var(--purple); 
-    color: var(--white); 
-    padding: 10px 20px; 
+button[type="submit"], button[type="button"] { 
+    padding: 0.625rem 1.25rem; 
     border: none; 
-    border-radius: 4px; 
+    border-radius: 0.5rem; 
     cursor: pointer; 
-    font-size: 16px; 
-    font-weight: 500;
+    font-size: 0.875rem; 
+    font-weight: 600;
+    transition: all 0.2s ease;
+    margin-right: 0.5rem;
 }
 
-button.primary:hover { background: var(--purple-contrast); }
+button[type="submit"] {
+    background: var(--purple); 
+    color: var(--white);
+}
+
+button[type="submit"]:hover { 
+    background: var(--purple-contrast);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+button[type="button"] {
+    background: var(--gray-3);
+    color: var(--black);
+}
+
+button[type="button"]:hover {
+    background: var(--gray-4);
+    transform: translateY(-1px);
+}
+
+button.saved {
+    background: #10b981 !important;
+    animation: saveSuccess 0.3s ease;
+}
+
+@keyframes saveSuccess {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
 
 #status { 
     margin: 12px 0; 

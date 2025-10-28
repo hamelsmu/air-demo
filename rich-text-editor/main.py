@@ -3,7 +3,6 @@ TipTap Rich Text Editor with Air Framework
 Minimal example using Jinja templates and HTMX
 """
 import air
-import json
 from sqlmodel import SQLModel, Field, select, Session, create_engine
 from air.requests import Request
 from datetime import datetime
@@ -69,18 +68,16 @@ async def save_document(request: Request):
 
         dbsession.add(doc)
         dbsession.commit()
+        dbsession.refresh(doc)
+        saved_doc_id = doc.id
 
     if action == "saved":
-        # New document - include OOB swap to set doc_id on client
-        return f'''<div id="status" class="success" hx-get="/documents-list" hx-trigger="load" hx-target="#documents" hx-swap="innerHTML">
-            <p>✅ Document '{title}' saved successfully!</p>
-        </div>
-        <input id="doc_id" name="doc_id" type="hidden" value="{doc.id}" hx-swap-oob="true">'''
+        return f'''<button id="save-btn" type="submit" class="saved" hx-swap-oob="true">✓ Saved</button>
+        <input id="doc_id" name="doc_id" type="hidden" value="{saved_doc_id}" hx-swap-oob="true">
+        <div hx-get="/documents-list" hx-trigger="load" hx-target="#documents" hx-swap="innerHTML"></div>'''
     else:
-        # Updated document
-        return f'''<div id="status" class="success" hx-get="/documents-list" hx-trigger="load" hx-target="#documents" hx-swap="innerHTML">
-            <p>✅ Document '{title}' updated successfully!</p>
-        </div>'''
+        return f'''<button id="save-btn" type="submit" class="saved" hx-swap-oob="true">✓ Saved</button>
+        <div hx-get="/documents-list" hx-trigger="load" hx-target="#documents" hx-swap="innerHTML"></div>'''
 
 @app.delete("/delete/{doc_id}")
 def delete_document(doc_id: int):
