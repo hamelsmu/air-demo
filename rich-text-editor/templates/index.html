@@ -2,7 +2,6 @@
 <html>
 <head>
     <title>TipTap Editor - Air Demo</title>
-    <link rel="stylesheet" href="https://unpkg.com/@tiptap/pm/style.css">
     <link rel="stylesheet" href="/static/style.css">
     <script src="https://unpkg.com/htmx.org@2.0.0"></script>
     <script type="module">
@@ -14,17 +13,54 @@
                 element: container,
                 extensions: [StarterKit],
                 content: initialHTML || '<p>Start writing your document...</p>',
-                editorProps: { attributes: { class: 'tiptap' } }
+                editorProps: { attributes: { class: 'tiptap' } },
+                // Sync editor content to hidden field on every change
+                // TipTap stores content in the DOM, not in a form field, so we
+                // keep the hidden field updated so it's included when the form submits
+                onUpdate: ({ editor }) => {
+                    document.getElementById('editor-content').value = editor.getHTML();
+                }
             });
             
-            // Before HTMX submits the form, capture the editor's HTML content
-            // and put it in the hidden field so it gets sent to the server.
-            // TipTap stores content in the DOM, not in a form field, so we must
-            // extract it manually when the form is submitted.
-            container.closest('form').addEventListener('htmx:configRequest', function() {
-                document.getElementById('editor-content').value = editor.getHTML();
-            });
+            // Wire up toolbar buttons
+            const toolbar = container.parentElement.querySelector('.button-group');
+            if (toolbar) {
+                toolbar.querySelector('[data-action="bold"]').onclick = () => editor.chain().focus().toggleBold().run();
+                toolbar.querySelector('[data-action="italic"]').onclick = () => editor.chain().focus().toggleItalic().run();
+                toolbar.querySelector('[data-action="strike"]').onclick = () => editor.chain().focus().toggleStrike().run();
+                toolbar.querySelector('[data-action="code"]').onclick = () => editor.chain().focus().toggleCode().run();
+                toolbar.querySelector('[data-action="h1"]').onclick = () => editor.chain().focus().toggleHeading({ level: 1 }).run();
+                toolbar.querySelector('[data-action="h2"]').onclick = () => editor.chain().focus().toggleHeading({ level: 2 }).run();
+                toolbar.querySelector('[data-action="h3"]').onclick = () => editor.chain().focus().toggleHeading({ level: 3 }).run();
+                toolbar.querySelector('[data-action="bullet-list"]').onclick = () => editor.chain().focus().toggleBulletList().run();
+                toolbar.querySelector('[data-action="ordered-list"]').onclick = () => editor.chain().focus().toggleOrderedList().run();
+                toolbar.querySelector('[data-action="code-block"]').onclick = () => editor.chain().focus().toggleCodeBlock().run();
+                toolbar.querySelector('[data-action="blockquote"]').onclick = () => editor.chain().focus().toggleBlockquote().run();
+                toolbar.querySelector('[data-action="undo"]').onclick = () => editor.chain().focus().undo().run();
+                toolbar.querySelector('[data-action="redo"]').onclick = () => editor.chain().focus().redo().run();
+                
+                // Update button states on content change
+                editor.on('update', () => updateToolbarState(editor, toolbar));
+                editor.on('selectionUpdate', () => updateToolbarState(editor, toolbar));
+                updateToolbarState(editor, toolbar);
+            }
         };
+        
+        function updateToolbarState(editor, toolbar) {
+            toolbar.querySelector('[data-action="bold"]').classList.toggle('is-active', editor.isActive('bold'));
+            toolbar.querySelector('[data-action="italic"]').classList.toggle('is-active', editor.isActive('italic'));
+            toolbar.querySelector('[data-action="strike"]').classList.toggle('is-active', editor.isActive('strike'));
+            toolbar.querySelector('[data-action="code"]').classList.toggle('is-active', editor.isActive('code'));
+            toolbar.querySelector('[data-action="h1"]').classList.toggle('is-active', editor.isActive('heading', { level: 1 }));
+            toolbar.querySelector('[data-action="h2"]').classList.toggle('is-active', editor.isActive('heading', { level: 2 }));
+            toolbar.querySelector('[data-action="h3"]').classList.toggle('is-active', editor.isActive('heading', { level: 3 }));
+            toolbar.querySelector('[data-action="bullet-list"]').classList.toggle('is-active', editor.isActive('bulletList'));
+            toolbar.querySelector('[data-action="ordered-list"]').classList.toggle('is-active', editor.isActive('orderedList'));
+            toolbar.querySelector('[data-action="code-block"]').classList.toggle('is-active', editor.isActive('codeBlock'));
+            toolbar.querySelector('[data-action="blockquote"]').classList.toggle('is-active', editor.isActive('blockquote'));
+            toolbar.querySelector('[data-action="undo"]').disabled = !editor.can().undo();
+            toolbar.querySelector('[data-action="redo"]').disabled = !editor.can().redo();
+        }
         
         function initAllEditors() {
             document.querySelectorAll('[data-tiptap]:not([data-initialized])').forEach(container => {
@@ -47,25 +83,44 @@
         <div id="editor-form">
             <form hx-post="/save" hx-target="#status">
                 <input name="title" type="text" required placeholder="Document Title" />
-                <div class="editor-container" data-tiptap=""></div>
+                
+                <div class="control-group">
+                    <div class="button-group">
+                        <button type="button" data-action="bold">Bold</button>
+                        <button type="button" data-action="italic">Italic</button>
+                        <button type="button" data-action="strike">Strike</button>
+                        <button type="button" data-action="code">Code</button>
+                        <button type="button" data-action="h1">H1</button>
+                        <button type="button" data-action="h2">H2</button>
+                        <button type="button" data-action="h3">H3</button>
+                        <button type="button" data-action="bullet-list">Bullet list</button>
+                        <button type="button" data-action="ordered-list">Ordered list</button>
+                        <button type="button" data-action="code-block">Code block</button>
+                        <button type="button" data-action="blockquote">Blockquote</button>
+                        <button type="button" data-action="undo">Undo</button>
+                        <button type="button" data-action="redo">Redo</button>
+                    </div>
+                    <div class="editor-container" data-tiptap=""></div>
+                </div>
+                
                 <input name="content" type="hidden" id="editor-content" />
                 <button type="submit" class="primary">Save Document</button>
             </form>
         </div>
 
-    <div class="document-list">
-        <h2>Saved Documents</h2>
-        <div id="documents">
-            {% for d in documents %}
-            <div class="document-item">
-                <h3>{{ d.title }}</h3>
-                <p>Last updated: {{ d.updated_at[:19] }}</p>
-                <button hx-get="/load/{{ d.id }}" hx-target="#editor-form" hx-swap="outerHTML">Load</button>
-                <button hx-delete="/delete/{{ d.id }}" hx-target="#status" hx-confirm="Delete '{{ d.title }}'?">Delete</button>
+        <div class="document-list">
+            <h2>Saved Documents</h2>
+            <div id="documents">
+                {% for d in documents %}
+                <div class="document-item">
+                    <h3>{{ d.title }}</h3>
+                    <p>Last updated: {{ d.updated_at[:19] }}</p>
+                    <button hx-get="/load/{{ d.id }}" hx-target="#editor-form" hx-swap="outerHTML">Load</button>
+                    <button hx-delete="/delete/{{ d.id }}" hx-target="#status" hx-confirm="Delete '{{ d.title }}'?">Delete</button>
+                </div>
+                {% endfor %}
             </div>
-            {% endfor %}
         </div>
-    </div>
     </div>
 </body>
 </html>

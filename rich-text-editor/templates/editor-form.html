@@ -2,7 +2,26 @@
     <form hx-post="/save" hx-target="#status">
         <input name="title" type="text" value="{{ doc.title }}" required placeholder="Document Title" />
         <input name="doc_id" type="hidden" value="{{ doc.id }}" />
-        <div class="editor-container" data-tiptap="" data-initial-html="{{ initial_content }}"></div>
+        
+        <div class="control-group">
+            <div class="button-group">
+                <button type="button" data-action="bold">Bold</button>
+                <button type="button" data-action="italic">Italic</button>
+                <button type="button" data-action="strike">Strike</button>
+                <button type="button" data-action="code">Code</button>
+                <button type="button" data-action="h1">H1</button>
+                <button type="button" data-action="h2">H2</button>
+                <button type="button" data-action="h3">H3</button>
+                <button type="button" data-action="bullet-list">Bullet list</button>
+                <button type="button" data-action="ordered-list">Ordered list</button>
+                <button type="button" data-action="code-block">Code block</button>
+                <button type="button" data-action="blockquote">Blockquote</button>
+                <button type="button" data-action="undo">Undo</button>
+                <button type="button" data-action="redo">Redo</button>
+            </div>
+            <div class="editor-container" data-tiptap="" data-initial-html="{{ initial_content }}"></div>
+        </div>
+        
         <input name="content" type="hidden" id="editor-content" />
         <button type="submit" class="primary">Save Document</button>
         <button type="button" hx-get="/" hx-target="body" hx-swap="outerHTML">New Document</button>
