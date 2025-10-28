@@ -1,0 +1,10 @@
+<div id="editor-form">
+    <form hx-post="/save" hx-target="#status">
+        <input name="title" type="text" value="{{ doc.title }}" required placeholder="Document Title" />
+        <input name="doc_id" type="hidden" value="{{ doc.id }}" />
+        <div class="editor-container" data-tiptap="" data-initial-html="{{ initial_content }}"></div>
+        <input name="content" type="hidden" id="editor-content" />
+        <button type="submit" class="primary">Save Document</button>
+        <button type="button" hx-get="/" hx-target="body" hx-swap="outerHTML">New Document</button>
+    </form>
+</div>

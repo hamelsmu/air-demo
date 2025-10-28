@@ -1,0 +1,82 @@
+<!doctype html>
+<html>
+<head>
+    <title>TipTap Editor - Air Demo</title>
+    <link rel="stylesheet" href="https://unpkg.com/@tiptap/pm/style.css">
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://unpkg.com/htmx.org@2.0.0"></script>
+    <script type="module">
+        import { Editor } from 'https://cdn.jsdelivr.net/npm/@tiptap/core@2.10.3/+esm';
+        import StarterKit from 'https://cdn.jsdelivr.net/npm/@tiptap/starter-kit@2.10.3/+esm';
+        
+        window.initEditor = function(container, initialHTML) {
+            const editor = new Editor({
+                element: container,
+                extensions: [StarterKit],
+                content: initialHTML || '<p>Start writing your document...</p>',
+                editorProps: { attributes: { class: 'tiptap' } }
+            });
+            
+            const form = container.closest('form');
+            if (form) {
+                form.addEventListener('htmx:configRequest', function() {
+                    const contentField = form.querySelector('#editor-content');
+                    if (contentField) {
+                        contentField.value = editor.getHTML();
+                    }
+                });
+            }
+        };
+        
+        function initAllEditors() {
+            document.querySelectorAll('[data-tiptap]:not([data-initialized])').forEach(container => {
+                container.setAttribute('data-initialized', 'true');
+                const initialHtml = container.dataset.initialHtml;
+                window.initEditor(container, initialHtml ? JSON.parse(initialHtml) : null);
+            });
+        }
+        
+        document.addEventListener('DOMContentLoaded', initAllEditors);
+        document.body.addEventListener('htmx:afterSwap', initAllEditors);
+    </script>
+</head>
+<body>
+    <h1>TipTap Rich Text Editor</h1>
+    
+    <div id="status"></div>
+    
+    <div id="editor-form">
+        {% if doc %}
+        <form hx-post="/save" hx-target="#status">
+            <input name="title" type="text" value="{{ doc.title }}" required placeholder="Document Title" />
+            <input name="doc_id" type="hidden" value="{{ doc.id }}" />
+            <div class="editor-container" data-tiptap="" data-initial-html="{{ initial_content }}"></div>
+            <input name="content" type="hidden" id="editor-content" />
+            <button type="submit" class="primary">Save Document</button>
+            <button type="button" hx-get="/" hx-target="body" hx-swap="outerHTML">New Document</button>
+        </form>
+        {% else %}
+        <form hx-post="/save" hx-target="#status">
+            <input name="title" type="text" required placeholder="Document Title" />
+            <div class="editor-container" data-tiptap=""></div>
+            <input name="content" type="hidden" id="editor-content" />
+            <button type="submit" class="primary">Save Document</button>
+        </form>
+        {% endif %}
+    </div>
+
+    <div class="document-list">
+        <h2>Saved Documents</h2>
+        <div id="documents">
+            {% for d in documents %}
+            <div class="document-item">
+                <h3>{{ d.title }}</h3>
+                <p>Last updated: {{ d.updated_at[:19] }}</p>
+                <button hx-get="/load/{{ d.id }}" hx-target="#editor-form" hx-swap="outerHTML">Load</button>
+                <button hx-delete="/delete/{{ d.id }}" hx-target="#status" hx-confirm="Delete '{{ d.title }}'?">Delete</button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

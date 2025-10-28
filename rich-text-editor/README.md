@@ -18,7 +18,7 @@ python -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
 # Install dependencies
-pip install air-sdk sqlmodel
+uv add air sqlmodel "fastapi[standard]"
 ```
 
 ## Running the Application
