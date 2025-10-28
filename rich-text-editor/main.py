@@ -87,7 +87,7 @@ def delete_document(doc_id: int):
         dbsession.delete(doc)
         dbsession.commit()
 
-    return f'''<div id="status" class="success" hx-get="/" hx-trigger="load delay:1s" hx-target="#app" hx-swap="innerHTML">
+    return f'''<div id="status" class="success" hx-get="/documents-list" hx-trigger="load delay:500ms" hx-target="#documents" hx-swap="innerHTML">
         <p>✅ Document '{title}' deleted successfully!</p>
     </div>'''
 
