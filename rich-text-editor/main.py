@@ -7,7 +7,6 @@ from sqlmodel import SQLModel, Field, select, Session, create_engine
 from air.requests import Request
 from datetime import datetime
 from starlette.templating import Jinja2Templates
-import html
 
 # Database setup
 engine = create_engine("sqlite:///./documents.db")
