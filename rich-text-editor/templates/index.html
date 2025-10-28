@@ -22,24 +22,30 @@
                 }
             });
             
-            // Wire up toolbar buttons
+            // Wire up toolbar buttons - each button's data-action maps to a TipTap command
             const toolbar = container.parentElement.querySelector('.button-group');
             if (toolbar) {
-                toolbar.querySelector('[data-action="bold"]').onclick = () => editor.chain().focus().toggleBold().run();
-                toolbar.querySelector('[data-action="italic"]').onclick = () => editor.chain().focus().toggleItalic().run();
-                toolbar.querySelector('[data-action="strike"]').onclick = () => editor.chain().focus().toggleStrike().run();
-                toolbar.querySelector('[data-action="code"]').onclick = () => editor.chain().focus().toggleCode().run();
-                toolbar.querySelector('[data-action="h1"]').onclick = () => editor.chain().focus().toggleHeading({ level: 1 }).run();
-                toolbar.querySelector('[data-action="h2"]').onclick = () => editor.chain().focus().toggleHeading({ level: 2 }).run();
-                toolbar.querySelector('[data-action="h3"]').onclick = () => editor.chain().focus().toggleHeading({ level: 3 }).run();
-                toolbar.querySelector('[data-action="bullet-list"]').onclick = () => editor.chain().focus().toggleBulletList().run();
-                toolbar.querySelector('[data-action="ordered-list"]').onclick = () => editor.chain().focus().toggleOrderedList().run();
-                toolbar.querySelector('[data-action="code-block"]').onclick = () => editor.chain().focus().toggleCodeBlock().run();
-                toolbar.querySelector('[data-action="blockquote"]').onclick = () => editor.chain().focus().toggleBlockquote().run();
-                toolbar.querySelector('[data-action="undo"]').onclick = () => editor.chain().focus().undo().run();
-                toolbar.querySelector('[data-action="redo"]').onclick = () => editor.chain().focus().redo().run();
+                const actions = {
+                    bold: () => editor.chain().focus().toggleBold().run(),
+                    italic: () => editor.chain().focus().toggleItalic().run(),
+                    strike: () => editor.chain().focus().toggleStrike().run(),
+                    code: () => editor.chain().focus().toggleCode().run(),
+                    h1: () => editor.chain().focus().toggleHeading({ level: 1 }).run(),
+                    h2: () => editor.chain().focus().toggleHeading({ level: 2 }).run(),
+                    h3: () => editor.chain().focus().toggleHeading({ level: 3 }).run(),
+                    'bullet-list': () => editor.chain().focus().toggleBulletList().run(),
+                    'ordered-list': () => editor.chain().focus().toggleOrderedList().run(),
+                    'code-block': () => editor.chain().focus().toggleCodeBlock().run(),
+                    blockquote: () => editor.chain().focus().toggleBlockquote().run(),
+                    undo: () => editor.chain().focus().undo().run(),
+                    redo: () => editor.chain().focus().redo().run()
+                };
                 
-                // Update button states on content change
+                Object.keys(actions).forEach(action => {
+                    toolbar.querySelector(`[data-action="${action}"]`).onclick = actions[action];
+                });
+                
+                // Update button states (active/disabled) when content or cursor position changes
                 editor.on('update', () => updateToolbarState(editor, toolbar));
                 editor.on('selectionUpdate', () => updateToolbarState(editor, toolbar));
                 updateToolbarState(editor, toolbar);
@@ -62,6 +68,9 @@
             toolbar.querySelector('[data-action="redo"]').disabled = !editor.can().redo();
         }
         
+        // Initialize all TipTap editors on the page
+        // This runs on page load AND after HTMX swaps new content in
+        // (e.g., when you click "Load" and a new editor form is inserted)
         function initAllEditors() {
             document.querySelectorAll('[data-tiptap]:not([data-initialized])').forEach(container => {
                 container.setAttribute('data-initialized', 'true');
