@@ -20,10 +20,7 @@
             const form = container.closest('form');
             if (form) {
                 form.addEventListener('htmx:configRequest', function() {
-                    const contentField = form.querySelector('#editor-content');
-                    if (contentField) {
-                        contentField.value = editor.getHTML();
-                    }
+                    document.getElementById('editor-content').value = editor.getHTML();
                 });
             }
         };
@@ -41,11 +38,12 @@
     </script>
 </head>
 <body>
-    <h1>TipTap Rich Text Editor</h1>
-    
-    <div id="status"></div>
-    
-    <div id="editor-form">
+    <div id="app">
+        <h1>TipTap Rich Text Editor</h1>
+        
+        <div id="status"></div>
+        
+        <div id="editor-form">
         {% if doc %}
         <form hx-post="/save" hx-target="#status">
             <input name="title" type="text" value="{{ doc.title }}" required placeholder="Document Title" />
@@ -77,6 +75,7 @@
             </div>
             {% endfor %}
         </div>
+    </div>
     </div>
 </body>
 </html>

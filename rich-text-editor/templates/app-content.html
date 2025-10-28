@@ -1,0 +1,26 @@
+<h1>TipTap Rich Text Editor</h1>
+
+<div id="status"></div>
+
+<div id="editor-form">
+    <form hx-post="/save" hx-target="#status">
+        <input name="title" type="text" required placeholder="Document Title" />
+        <div class="editor-container" data-tiptap=""></div>
+        <input name="content" type="hidden" id="editor-content" />
+        <button type="submit" class="primary">Save Document</button>
+    </form>
+</div>
+
+<div class="document-list">
+    <h2>Saved Documents</h2>
+    <div id="documents">
+        {% for d in documents %}
+        <div class="document-item">
+            <h3>{{ d.title }}</h3>
+            <p>Last updated: {{ d.updated_at[:19] }}</p>
+            <button hx-get="/load/{{ d.id }}" hx-target="#editor-form" hx-swap="outerHTML">Load</button>
+            <button hx-delete="/delete/{{ d.id }}" hx-target="#status" hx-confirm="Delete '{{ d.title }}'?">Delete</button>
+        </div>
+        {% endfor %}
+    </div>
+</div>

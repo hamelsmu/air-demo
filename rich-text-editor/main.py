@@ -71,7 +71,7 @@ async def save_document(request: Request):
         dbsession.add(doc)
         dbsession.commit()
 
-    return f'''<div id="status" class="success" hx-get="/" hx-trigger="load delay:1s" hx-target="body" hx-swap="outerHTML">
+    return f'''<div id="status" class="success" hx-get="/documents-list" hx-trigger="load delay:500ms" hx-target="#documents" hx-swap="innerHTML">
         <p>✅ Document '{title}' {action} successfully!</p>
     </div>'''
 
@@ -87,6 +87,13 @@ def delete_document(doc_id: int):
         dbsession.delete(doc)
         dbsession.commit()
 
-    return f'''<div id="status" class="success" hx-get="/" hx-trigger="load delay:1s" hx-target="body" hx-swap="outerHTML">
+    return f'''<div id="status" class="success" hx-get="/" hx-trigger="load delay:1s" hx-target="#app" hx-swap="innerHTML">
         <p>✅ Document '{title}' deleted successfully!</p>
     </div>'''
+
+@app.get("/documents-list")
+def documents_list(request: Request):
+    """Return just the documents list fragment"""
+    with Session(engine) as dbsession:
+        documents = dbsession.exec(select(Document).order_by(Document.updated_at.desc())).all()
+    return jinja(request, name="documents-list.html", documents=documents)
