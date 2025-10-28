@@ -17,6 +17,10 @@
                 editorProps: { attributes: { class: 'tiptap' } }
             });
             
+            // Before HTMX submits the form, capture the editor's HTML content
+            // and put it in the hidden field so it gets sent to the server.
+            // TipTap stores content in the DOM, not in a form field, so we must
+            // extract it manually when the form is submitted.
             container.closest('form').addEventListener('htmx:configRequest', function() {
                 document.getElementById('editor-content').value = editor.getHTML();
             });
