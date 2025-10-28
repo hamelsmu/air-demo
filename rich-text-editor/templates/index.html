@@ -25,6 +25,15 @@
                 }
             });
             
+            // Prevent Enter key in editor from submitting the form
+            if (form) {
+                form.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && e.target.closest('.tiptap')) {
+                        e.stopPropagation();
+                    }
+                });
+            }
+            
             // Wire up toolbar buttons using event delegation
             const toolbar = container.parentElement.querySelector('.button-group');
             if (toolbar) {
