@@ -5,8 +5,21 @@
     <link rel="stylesheet" href="/static/style.css">
     <script src="https://unpkg.com/htmx.org@2.0.0"></script>
     <script type="module">
-        import { Editor } from 'https://cdn.jsdelivr.net/npm/@tiptap/core@2.10.3/+esm';
-        import StarterKit from 'https://cdn.jsdelivr.net/npm/@tiptap/starter-kit@2.10.3/+esm';
+        import { Editor, Extension } from 'https://esm.sh/@tiptap/core@2.10.3';
+        import StarterKit from 'https://esm.sh/@tiptap/starter-kit@2.10.3';
+        
+        // Add Tab key support
+        const TabExtension = Extension.create({
+            name: 'tabExtension',
+            addKeyboardShortcuts() {
+                return {
+                    'Tab': () => {
+                        this.editor.commands.insertContent('\t');
+                        return true;
+                    },
+                }
+            },
+        });
         
         window.initEditor = function(container, initialHTML) {
             const form = container.closest('form');
@@ -14,24 +27,18 @@
             
             const editor = new Editor({
                 element: container,
-                extensions: [StarterKit],
-                content: initialHTML || '<p>Start writing your document...</p>',
+                extensions: [StarterKit, TabExtension],
+                content: initialHTML || '',
                 editorProps: { 
-                    attributes: { class: 'tiptap' },
-                    // Prevent Enter from submitting the form, but let TipTap handle newlines
-                    handleDOMEvents: {
-                        keydown: (_view, event) => {
-                            if (event.key === 'Enter' && !event.isComposing) {
-                                event.preventDefault();
-                                return false; // Let TipTap insert newline
-                            }
-                            return false;
-                        }
+                    attributes: { 
+                        class: 'tiptap'
                     }
                 },
+                // Sync initial content to hidden field
+                onCreate: ({ editor }) => {
+                    if (hiddenField) hiddenField.value = editor.getHTML();
+                },
                 // Sync editor content to hidden field on every change
-                // TipTap stores content in the DOM, not in a form field, so we
-                // keep the hidden field updated so it's included when the form submits
                 onUpdate: ({ editor }) => {
                     if (hiddenField) hiddenField.value = editor.getHTML();
                 }
@@ -43,6 +50,7 @@
                 // Map button actions to editor commands
                 const runAction = (action) => {
                     const chain = editor.chain().focus();
+                    
                     switch (action) {
                         case 'bold': case 'italic': case 'underline': case 'strike': 
                         case 'code': case 'blockquote':
@@ -124,6 +132,7 @@
         <div id="editor-form">
             <form hx-post="/save" hx-target="#status">
                 <input name="title" type="text" required placeholder="Document Title" />
+                <input name="doc_id" id="doc_id" type="hidden" />
                 
                 <div class="control-group">
                     <div class="button-group">

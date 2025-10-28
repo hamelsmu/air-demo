@@ -1,7 +1,7 @@
 <div id="editor-form">
     <form hx-post="/save" hx-target="#status">
         <input name="title" type="text" value="{{ doc.title }}" required placeholder="Document Title" />
-        <input name="doc_id" type="hidden" value="{{ doc.id }}" />
+        <input name="doc_id" id="doc_id" type="hidden" value="{{ doc.id }}" />
         
         <div class="control-group">
             <div class="button-group">
@@ -25,6 +25,6 @@
         
         <input name="content" type="hidden" id="editor-content" />
         <button type="submit" class="primary">Save Document</button>
-        <button type="button" hx-get="/" hx-target="body" hx-swap="outerHTML">New Document</button>
+        <button type="button" onclick="window.location.href='/'">New Document</button>
     </form>
 </div>

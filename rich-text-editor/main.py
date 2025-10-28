@@ -70,9 +70,17 @@ async def save_document(request: Request):
         dbsession.add(doc)
         dbsession.commit()
 
-    return f'''<div id="status" class="success" hx-get="/documents-list" hx-trigger="load delay:500ms" hx-target="#documents" hx-swap="innerHTML">
-        <p>✅ Document '{title}' {action} successfully!</p>
-    </div>'''
+    if action == "saved":
+        # New document - include OOB swap to set doc_id on client
+        return f'''<div id="status" class="success" hx-get="/documents-list" hx-trigger="load" hx-target="#documents" hx-swap="innerHTML">
+            <p>✅ Document '{title}' saved successfully!</p>
+        </div>
+        <input id="doc_id" name="doc_id" type="hidden" value="{doc.id}" hx-swap-oob="true">'''
+    else:
+        # Updated document
+        return f'''<div id="status" class="success" hx-get="/documents-list" hx-trigger="load" hx-target="#documents" hx-swap="innerHTML">
+            <p>✅ Document '{title}' updated successfully!</p>
+        </div>'''
 
 @app.delete("/delete/{doc_id}")
 def delete_document(doc_id: int):
@@ -86,7 +94,7 @@ def delete_document(doc_id: int):
         dbsession.delete(doc)
         dbsession.commit()
 
-    return f'''<div id="status" class="success" hx-get="/documents-list" hx-trigger="load delay:500ms" hx-target="#documents" hx-swap="innerHTML">
+    return f'''<div id="status" class="success" hx-get="/documents-list" hx-trigger="load" hx-target="#documents" hx-swap="innerHTML">
         <p>✅ Document '{title}' deleted successfully!</p>
     </div>'''
 
