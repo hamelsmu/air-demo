@@ -29,15 +29,15 @@ app.mount("/static", air.StaticFiles(directory="static"), name="static")
 @app.get("/")
 def index(request: Request):
     """Main page"""
-    with Session(engine) as session:
-        documents = session.exec(select(Document).order_by(Document.updated_at.desc())).all()
+    with Session(engine) as dbsession:
+        documents = dbsession.exec(select(Document).order_by(Document.updated_at.desc())).all()
     return jinja(request, name="index.html", documents=documents, doc=None)
 
 @app.get("/load/{doc_id}")
 def load_document(doc_id: int, request: Request):
     """Load document into editor (returns form fragment)"""
-    with Session(engine) as session:
-        doc = session.get(Document, doc_id)
+    with Session(engine) as dbsession:
+        doc = dbsession.get(Document, doc_id)
         if not doc:
             return '<div id="editor-form"><p class="error">Document not found</p></div>'
 
@@ -55,9 +55,9 @@ async def save_document(request: Request):
     if not title or not content:
         return '<div id="status" class="error"><p>❌ Title and content are required</p></div>'
 
-    with Session(engine) as session:
+    with Session(engine) as dbsession:
         if doc_id:
-            doc = session.get(Document, int(doc_id))
+            doc = dbsession.get(Document, int(doc_id))
             if not doc:
                 return '<div id="status" class="error"><p>❌ Document not found</p></div>'
             doc.title = title
@@ -68,8 +68,8 @@ async def save_document(request: Request):
             doc = Document(title=title, content=content)
             action = "saved"
 
-        session.add(doc)
-        session.commit()
+        dbsession.add(doc)
+        dbsession.commit()
 
     return f'''<div id="status" class="success" hx-get="/" hx-trigger="load delay:1s" hx-target="body" hx-swap="outerHTML">
         <p>✅ Document '{title}' {action} successfully!</p>
@@ -78,14 +78,14 @@ async def save_document(request: Request):
 @app.delete("/delete/{doc_id}")
 def delete_document(doc_id: int):
     """Delete document (returns status fragment)"""
-    with Session(engine) as session:
-        doc = session.get(Document, doc_id)
+    with Session(engine) as dbsession:
+        doc = dbsession.get(Document, doc_id)
         if not doc:
             return '<div id="status" class="error"><p>❌ Document not found</p></div>'
 
         title = doc.title
-        session.delete(doc)
-        session.commit()
+        dbsession.delete(doc)
+        dbsession.commit()
 
     return f'''<div id="status" class="success" hx-get="/" hx-trigger="load delay:1s" hx-target="body" hx-swap="outerHTML">
         <p>✅ Document '{title}' deleted successfully!</p>
