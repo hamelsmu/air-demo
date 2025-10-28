@@ -6,6 +6,8 @@ import air
 from sqlmodel import SQLModel, Field, select, Session, create_engine
 from air.requests import Request
 from datetime import datetime
+from starlette.templating import Jinja2Templates
+import html
 
 # Database setup
 engine = create_engine("sqlite:///./documents.db")
@@ -21,6 +23,7 @@ SQLModel.metadata.create_all(engine)
 
 app = air.Air()
 jinja = air.JinjaRenderer(directory="templates")
+templates = Jinja2Templates(directory="templates")
 
 # Serve static files
 app.mount("/static", air.StaticFiles(directory="static"), name="static")
@@ -38,36 +41,10 @@ def load_document(doc_id: int, request: Request):
         if not doc:
             return '<div id="editor-form"><p class="error">Document not found</p></div>'
     
-    return f'''<div id="editor-form">
-    <form hx-post="/save" hx-target="#status">
-        <input name="title" type="text" value="{doc.title}" required placeholder="Document Title" />
-        <input name="doc_id" id="doc_id" type="hidden" value="{doc.id}" />
-        
-        <div class="control-group">
-            <div class="button-group">
-                <button type="button" data-action="bold">Bold</button>
-                <button type="button" data-action="italic">Italic</button>
-                <button type="button" data-action="underline">Underline</button>
-                <button type="button" data-action="strike">Strike</button>
-                <button type="button" data-action="code">Code</button>
-                <button type="button" data-action="link">Link</button>
-                <button type="button" data-action="h1">H1</button>
-                <button type="button" data-action="h2">H2</button>
-                <button type="button" data-action="h3">H3</button>
-                <button type="button" data-action="bullet-list">Bullet list</button>
-                <button type="button" data-action="ordered-list">Ordered list</button>
-                <button type="button" data-action="code-block">Code block</button>
-                <button type="button" data-action="blockquote">Blockquote</button>
-                <button type="button" data-action="undo">Undo</button>
-                <button type="button" data-action="redo">Redo</button>
-            </div>
-            <div class="editor-container" data-tiptap="" data-initial-html='{doc.content}'></div>
-        </div>
-        
-        <button id="save-btn" type="submit">Save</button>
-        <button type="button" onclick="window.location.href='/'">New</button>
-    </form>
-</div>'''
+    return templates.TemplateResponse(
+        "editor-form.html",
+        {"request": request, "doc": doc, "initial_content": doc.content}
+    )
 
 @app.post("/save")
 async def save_document(request: Request):
@@ -128,16 +105,7 @@ def documents_list(request: Request):
     with Session(engine) as dbsession:
         documents = dbsession.exec(select(Document).order_by(Document.updated_at.desc())).all()
     
-    html_parts = []
-    for d in documents:
-        html_parts.append(f'''<div class="document-item">
-    <h3>{d.title}</h3>
-    <p>Last updated: {d.updated_at[:19]}</p>
-    <button hx-get="/load/{d.id}" hx-target="#editor-form" hx-swap="outerHTML">Load</button>
-    <button hx-delete="/delete/{d.id}" hx-target="#status" hx-confirm="Delete '{d.title}'?">Delete</button>
-</div>''')
-    
-    if not html_parts:
-        return '<p class="text-gray-500">No documents yet. Create your first document above!</p>'
-    
-    return '\n'.join(html_parts)
+    return templates.TemplateResponse(
+        "documents-list.html",
+        {"request": request, "documents": documents}
+    )

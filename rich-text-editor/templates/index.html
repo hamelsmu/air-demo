@@ -45,8 +45,7 @@
 
         <div class="document-list">
             <h2>Saved Documents</h2>
-            <div id="documents">
-                {% include 'documents-list.html' %}
+            <div id="documents" hx-get="/documents-list" hx-trigger="load" hx-swap="innerHTML">
             </div>
         </div>
     </div>

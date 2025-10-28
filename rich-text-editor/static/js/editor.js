@@ -161,7 +161,9 @@ function updateToolbarState(editor, toolbar) {
  * @param {HTMLFormElement} form - Form element containing the editor
  */
 function setupKeyboardShortcuts(editor, form) {
-    document.addEventListener('keydown', (e) => {
+    if (!form) return;
+    
+    form.addEventListener('keydown', (e) => {
         const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
         const modifier = isMac ? e.metaKey : e.ctrlKey;
         
@@ -169,9 +171,7 @@ function setupKeyboardShortcuts(editor, form) {
             switch(e.key.toLowerCase()) {
                 case 's':
                     e.preventDefault();
-                    if (form) {
-                        form.requestSubmit();
-                    }
+                    form.requestSubmit();
                     break;
                 case 'b':
                     e.preventDefault();
