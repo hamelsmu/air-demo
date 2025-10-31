@@ -1,0 +1,55 @@
+<!doctype html>
+<html>
+<head>
+    <title>TipTap Editor - Air Demo</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://unpkg.com/htmx.org@2.0.0"></script>
+    <script type="module" src="/static/js/editor.js"></script>
+</head>
+<body>
+    <div id="app">
+        <h1>Simple Editor</h1>
+        <div id="editor"></div>
+        <h1>TipTap Rich Text Editor</h1>
+        
+        <div id="status"></div>
+        
+        <div id="editor-form">
+            <form hx-post="/save" hx-target="#status">
+                <input name="title" type="text" required placeholder="Document Title" />
+                <input name="doc_id" id="doc_id" type="hidden" />
+                
+                <div class="control-group">
+                    <div class="button-group">
+                        <button type="button" data-action="bold">Bold</button>
+                        <button type="button" data-action="italic">Italic</button>
+                        <button type="button" data-action="underline">Underline</button>
+                        <button type="button" data-action="strike">Strike</button>
+                        <button type="button" data-action="code">Code</button>
+                        <button type="button" data-action="link">Link</button>
+                        <button type="button" data-action="h1">H1</button>
+                        <button type="button" data-action="h2">H2</button>
+                        <button type="button" data-action="h3">H3</button>
+                        <button type="button" data-action="bullet-list">Bullet list</button>
+                        <button type="button" data-action="ordered-list">Ordered list</button>
+                        <button type="button" data-action="code-block">Code block</button>
+                        <button type="button" data-action="blockquote">Blockquote</button>
+                        <button type="button" data-action="undo">Undo</button>
+                        <button type="button" data-action="redo">Redo</button>
+                    </div>
+                    <div class="editor-container" data-tiptap=""></div>
+                </div>
+                
+                <button id="save-btn" type="submit">Save</button>
+                <button type="button" onclick="window.location.href='/'">New</button>
+            </form>
+        </div>
+
+        <div class="document-list">
+            <h2>Saved Documents</h2>
+            <div id="documents" hx-get="/documents-list" hx-trigger="load" hx-swap="innerHTML">
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{% for d in documents %}
+<div class="document-item">
+    <h3>{{ d.title }}</h3>
+    <p>Last updated: {{ d.updated_at[:19] }}</p>
+    <button hx-get="/load/{{ d.id }}" hx-target="#editor-form" hx-swap="outerHTML">Load</button>
+    <button hx-delete="/delete/{{ d.id }}" hx-target="#status" hx-confirm="Delete '{{ d.title }}'?">Delete</button>
+</div>
+{% endfor %}

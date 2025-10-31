@@ -13,6 +13,26 @@
 
 [Air](https://feldroy.github.io/air/) is a FastAPI-powered web framework that generates HTML using Python classes instead of templates. It's designed for HTMX-first development with built-in Pydantic form validation.
 
+## Key Learnings from TipTap Integration (PAR-7)
+
+### TipTap Editor Patterns
+- **Content Extraction**: TipTap is headless and doesn't handle forms. Use `onUpdate` callback to sync content to a hidden field: `onUpdate: ({ editor }) => { hiddenField.value = editor.getHTML(); }`
+- **HTMX Re-initialization**: After HTMX swaps content (e.g., loading a document), editors in new DOM must be re-initialized. Listen to `htmx:afterSwap` event.
+- **Toolbar Wiring**: Use data attributes (`data-action="bold"`) and map to TipTap commands in a loop to reduce repetition.
+- **Active States**: Use `editor.on('update')` and `editor.on('selectionUpdate')` to update toolbar button states (is-active class).
+
+### Air/Jinja Best Practices
+- **Use Jinja for complex HTML/JS**: When templates have lots of JavaScript or HTML, use Jinja templates instead of Air Tags for better readability.
+- **External CSS**: Move CSS to static files (e.g., `static/style.css`), not inline in templates or Python.
+- **Fragment Returns**: HTMX endpoints should return small HTML fragments, not full pages. Use separate templates for fragments.
+- **Database Sessions**: Name SQLModel sessions `dbsession` not `session` to avoid confusion with web sessions.
+- **Minimal Routes**: Don't create separate routes for create/update - use one route that checks for an ID.
+
+### HTMX Patterns
+- **Targeted Swaps**: Use `hx-target="#specific-id"` for precise updates instead of swapping entire page/body.
+- **Fragment Templates**: Create small templates (e.g., `documents-list.html`) that return only the content to swap.
+- **No Full Reloads**: Update specific sections (like document lists) via fragments rather than reloading the whole page.
+
 ## Documentation Resources
 
 **When working with Air, always consult these resources:**

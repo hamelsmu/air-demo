@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>CKEditor 5 - Quick start CDN</title>
+        <link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/47.1.0/ckeditor5.css" />
+    </head>
+    <body>
+        <div id="editor">
+            <p>Hello from <strong>CKEditor 5!</strong></p>
+        </div>
+
+        <script src="https://cdn.ckeditor.com/ckeditor5/47.1.0/ckeditor5.umd.js"></script>
+
+        <script>
+            let editor;
+            const licenseKey = '{{ ckeditor_license_key }}'; 
+            const {
+                ClassicEditor,
+                Essentials,
+                Bold,
+                Italic,
+                Font,
+                Paragraph
+            } = CKEDITOR;
+
+            ClassicEditor
+                .create( document.querySelector( '#editor' ), {
+                    licenseKey: licenseKey,
+                    plugins: [ Essentials, Bold, Italic, Font, Paragraph ],
+                    toolbar: [
+                        'undo', 'redo', '|', 'bold', 'italic', '|',
+                        'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor'
+                    ]
+                } )
+                .then( newEditor => editor = newEditor )
+                .catch( /* ... */ );
+        </script>
+    </body>
+</html>
