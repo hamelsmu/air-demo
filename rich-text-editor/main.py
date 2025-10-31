@@ -21,7 +21,7 @@ class Document(SQLModel, table=True):
 SQLModel.metadata.create_all(engine)
 
 app = air.Air()
-templates = Jinja2Templates(directory="templates")
+jinja = air.JinjaRenderer(directory="templates")
 
 # Serve static files
 app.mount("/static", air.StaticFiles(directory="static"), name="static")
@@ -29,7 +29,7 @@ app.mount("/static", air.StaticFiles(directory="static"), name="static")
 @app.get("/")
 def index(request: Request):
     """Main page"""
-    return templates.TemplateResponse("index.html", {"request": request})
+    return jinja(request, "index.html")
 
 @app.get("/load/{doc_id}")
 def load_document(doc_id: int, request: Request):
@@ -39,10 +39,7 @@ def load_document(doc_id: int, request: Request):
         if not doc:
             return '<div id="editor-form"><p class="error">Document not found</p></div>'
     
-    return templates.TemplateResponse(
-        "editor-form.html",
-        {"request": request, "doc": doc, "initial_content": doc.content}
-    )
+    return jinja(request, "editor-form.html", doc=doc, initial_content=doc.content)
 
 @app.post("/save")
 async def save_document(request: Request):
@@ -102,8 +99,4 @@ def documents_list(request: Request):
     """Return just the documents list fragment"""
     with Session(engine) as dbsession:
         documents = dbsession.exec(select(Document).order_by(Document.updated_at.desc())).all()
-    
-    return templates.TemplateResponse(
-        "documents-list.html",
-        {"request": request, "documents": documents}
-    )
+    return jinja(request, "documents-list.html", documents=documents)
