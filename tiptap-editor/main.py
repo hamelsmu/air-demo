@@ -48,6 +48,7 @@ async def save_document(request: Request):
     doc_id = form_data.get("doc_id")
     title = form_data.get("title")
     content = form_data.get("content")
+    print(content)
 
     if not title or not content:
         return '<div id="status" class="error"><p>❌ Title and content are required</p></div>'

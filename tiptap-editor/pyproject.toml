@@ -1,5 +1,5 @@
 [project]
-name = "rich-text-editor"
+name = "tiptap-editor"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"

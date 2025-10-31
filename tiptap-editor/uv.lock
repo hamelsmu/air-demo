@@ -727,25 +727,6 @@ wheels = [
 ]
 
 [[package]]
-name = "rich-text-editor"
-version = "0.1.0"
-source = { virtual = "." }
-dependencies = [
-    { name = "air", version = "0.30.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
-    { name = "air", version = "0.35.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.12.*'" },
-    { name = "air", version = "0.39.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.13'" },
-    { name = "fastapi", extra = ["standard"] },
-    { name = "sqlmodel" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "air", specifier = ">=0.30.0" },
-    { name = "fastapi", extras = ["standard"], specifier = ">=0.120.1" },
-    { name = "sqlmodel", specifier = ">=0.0.27" },
-]
-
-[[package]]
 name = "rich-toolkit"
 version = "0.15.1"
 source = { registry = "https://pypi.org/simple" }
@@ -959,6 +940,25 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/e1/36/70878596a60339cd9f78ee58b9ca8548f235a02d21be649ca73c35ccdd5a/starlette-0.49.0.tar.gz", hash = "sha256:cb75dfe3267b99caf9036db355601f8c6092c4d50d132b3724cb373766cb2ab1", size = 2654292 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/98/c4/da4392a59f3f1c9da2fa7bafd697ed14cf5f2ee2102c5cd4a4a1c5985e42/starlette-0.49.0-py3-none-any.whl", hash = "sha256:6f3988f55dda3fd36e5640aeaceee5b691063e0ebc4d7851e1c3a6695fbdc8ba", size = 74057 },
+]
+
+[[package]]
+name = "tiptap-editor"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "air", version = "0.30.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
+    { name = "air", version = "0.35.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.12.*'" },
+    { name = "air", version = "0.39.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.13'" },
+    { name = "fastapi", extra = ["standard"] },
+    { name = "sqlmodel" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "air", specifier = ">=0.30.0" },
+    { name = "fastapi", extras = ["standard"], specifier = ">=0.120.1" },
+    { name = "sqlmodel", specifier = ">=0.0.27" },
 ]
 
 [[package]]
